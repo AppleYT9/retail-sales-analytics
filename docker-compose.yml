@@ -1,0 +1,29 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    volumes:
+      - api_data:/data
+    environment:
+      - DATABASE_URL=sqlite:////data/retail_analytics.db
+      - JWT_SECRET=change-this-to-a-secure-secret-in-production-12345
+      - ACCESS_TOKEN_EXPIRE_MINUTES=1440
+    restart: always
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:3002/api/v1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  api_data:

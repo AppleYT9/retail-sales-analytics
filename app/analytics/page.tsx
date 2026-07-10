@@ -19,6 +19,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { SalesData, apiClient } from '@/lib/api-client'
+import { PageHeader } from '@/components/PageHeader'
 
 const COLORS = ['#8366d5', '#6db85f', '#d9a62d', '#d94545', '#5b7dd6']
 
@@ -26,13 +27,36 @@ export default function Analytics() {
   const [salesData, setSalesData] = useState<SalesData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [dateRange, setDateRange] = useState('30days')
+  const [dateRange, setDateRange] = useState('all')
+  const [customYear, setCustomYear] = useState('2023')
+  const [activeUploadId, setActiveUploadId] = useState<string>('none')
+
+  useEffect(() => {
+    const saved = localStorage.getItem('activeUploadId') || 'none'
+    setActiveUploadId(saved)
+
+    const handleUploadChange = () => {
+      setActiveUploadId(localStorage.getItem('activeUploadId') || 'none')
+    }
+
+    window.addEventListener('activeUploadChanged', handleUploadChange)
+    return () => window.removeEventListener('activeUploadChanged', handleUploadChange)
+  }, [])
 
   useEffect(() => {
     const fetchSalesData = async () => {
+      if (activeUploadId === 'none') {
+        setSalesData([])
+        setLoading(false)
+        return
+      }
       try {
         setLoading(true)
-        const response = await apiClient.getSalesData()
+        const range = dateRange === 'custom' ? customYear : dateRange
+        const response = await apiClient.getSalesData({
+          range,
+          uploadId: Number(activeUploadId)
+        })
         if (response.success && response.data) {
           setSalesData(response.data)
         } else {
@@ -46,7 +70,7 @@ export default function Analytics() {
     }
 
     fetchSalesData()
-  }, [dateRange])
+  }, [dateRange, customYear, activeUploadId])
 
   // Process data for charts
   const dailyTrend = salesData.reduce(
@@ -95,23 +119,13 @@ export default function Analytics() {
     .slice(0, 10)
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-border hover:bg-muted transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </Link>
-            <h1 className="text-2xl font-bold text-foreground">Sales Analytics</h1>
-          </div>
-        </div>
-      </header>
+    <div className="p-6 lg:p-8 w-full max-w-7xl mx-auto">
+      <PageHeader 
+        title="Sales Analytics" 
+        description="Deep dive into your retail performance metrics."
+      />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="py-4">
         {error && (
           <div className="mb-8 p-4 rounded-lg bg-red-50 border border-red-200 text-red-800">
             <p className="font-medium">{error}</p>
@@ -126,11 +140,29 @@ export default function Analytics() {
             onChange={(e) => setDateRange(e.target.value)}
             className="px-3 py-2 rounded-lg border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           >
+            <option value="all">All Time</option>
             <option value="7days">Last 7 days</option>
             <option value="30days">Last 30 days</option>
             <option value="90days">Last 90 days</option>
             <option value="1year">Last year</option>
+            <option value="2023">Year 2023</option>
+            <option value="2024">Year 2024</option>
+            <option value="2025">Year 2025</option>
+            <option value="2026">Year 2026</option>
+            <option value="custom">Custom Year...</option>
           </select>
+
+          {dateRange === 'custom' && (
+            <input
+              type="number"
+              min="1000"
+              max="9999"
+              value={customYear}
+              onChange={(e) => setCustomYear(e.target.value)}
+              placeholder="YYYY"
+              className="w-24 px-3 py-2 rounded-lg border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          )}
         </div>
 
         {/* Charts Grid */}
@@ -148,7 +180,7 @@ export default function Analytics() {
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={dailyTrend}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis stroke="var(--muted-foreground)" />
+                  <XAxis dataKey="date" stroke="var(--muted-foreground)" />
                   <YAxis stroke="var(--muted-foreground)" />
                   <Tooltip
                     contentStyle={{
@@ -191,7 +223,7 @@ export default function Analytics() {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
+                    <Tooltip formatter={(value?: any) => value !== undefined ? `$${value.toLocaleString()}` : ''} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -214,7 +246,7 @@ export default function Analytics() {
                         border: '1px solid var(--border)',
                         borderRadius: '0.5rem',
                       }}
-                      formatter={(value) => `$${value.toLocaleString()}`}
+                      formatter={(value?: any) => value !== undefined ? `$${value.toLocaleString()}` : ''}
                     />
                     <Bar dataKey="revenue" fill="#8366d5" name="Revenue" />
                   </BarChart>

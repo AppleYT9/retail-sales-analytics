@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, Download, Calendar } from 'lucide-react'
 import { apiClient } from '@/lib/api-client'
+import { PageHeader } from '@/components/PageHeader'
 
 interface ReportTemplate {
   id: string
@@ -17,6 +18,19 @@ export default function ReportsPage() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [selectedFormat, setSelectedFormat] = useState<'pdf' | 'excel' | 'csv'>('pdf')
+  const [activeUploadId, setActiveUploadId] = useState<string>('none')
+
+  useEffect(() => {
+    const saved = localStorage.getItem('activeUploadId') || 'none'
+    setActiveUploadId(saved)
+
+    const handleUploadChange = () => {
+      setActiveUploadId(localStorage.getItem('activeUploadId') || 'none')
+    }
+
+    window.addEventListener('activeUploadChanged', handleUploadChange)
+    return () => window.removeEventListener('activeUploadChanged', handleUploadChange)
+  }, [])
 
   const reportTemplates: ReportTemplate[] = [
     {
@@ -48,7 +62,8 @@ export default function ReportsPage() {
   const generateReport = async (reportId: string) => {
     try {
       setGenerating(reportId)
-      const blob = await apiClient.generateReport(reportId, selectedFormat)
+      const uploadIdParam = activeUploadId !== 'all' ? Number(activeUploadId) : undefined
+      const blob = await apiClient.generateReport(reportId, selectedFormat, uploadIdParam)
 
       // Create download link
       const url = window.URL.createObjectURL(blob)
@@ -68,23 +83,18 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-border hover:bg-muted transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </Link>
-            <h1 className="text-2xl font-bold text-foreground">Reports & Exports</h1>
-          </div>
-        </div>
-      </header>
+    <div className="p-6 lg:p-8 w-full max-w-7xl mx-auto">
+      <PageHeader 
+        title="Reports & Exports" 
+        description="Generate and download detailed business reports."
+      />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="py-4">
+        {activeUploadId === 'none' && (
+          <div className="mb-6 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 text-sm">
+            ⚠️ Please select a dataset in the sidebar to enable report downloads.
+          </div>
+        )}
         {/* Report Filters */}
         <div className="bg-card border border-border rounded-lg p-6 mb-8">
           <h2 className="text-lg font-semibold text-foreground mb-4">Report Settings</h2>
@@ -139,7 +149,7 @@ export default function ReportsPage() {
                 <div className="text-4xl">{template.icon}</div>
                 <button
                   onClick={() => generateReport(template.id)}
-                  disabled={generating === template.id}
+                  disabled={generating === template.id || activeUploadId === 'none'}
                   className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
                 >
                   <Download className="w-4 h-4" />

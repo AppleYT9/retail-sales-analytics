@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "3002:3002"
+    volumes:
+      - .:/app
+      - api_data:/data
+    environment:
+      - DATABASE_URL=sqlite:////data/retail_analytics.db
+      - SECRET_KEY=your-super-secret-key-change-in-production
+    command: sh -c "mkdir -p /data && (test -f /data/retail_analytics.db || cp /app/retail_analytics.db /data/retail_analytics.db) && uvicorn app.main:app --host 0.0.0.0 --port 3002"
+
+volumes:
+  api_data:

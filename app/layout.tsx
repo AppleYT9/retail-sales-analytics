@@ -33,15 +33,28 @@ export const viewport: Viewport = {
   ],
 }
 
+import { ThemeProvider } from '@/components/ThemeProvider'
+import { Sidebar } from '@/components/Sidebar'
+import { AuthGuard } from '@/components/AuthGuard'
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-background">
-      <body className="antialiased">
-        {children}
+    <html lang="en" suppressHydrationWarning>
+      <body className="antialiased font-sans">
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          <AuthGuard>
+            <div className="flex h-screen overflow-hidden bg-background">
+              <Sidebar />
+              <main className="flex-1 overflow-y-auto">
+                {children}
+              </main>
+            </div>
+          </AuthGuard>
+        </ThemeProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
