@@ -13,6 +13,7 @@ COPY . .
 # Set public build-time API url (can be overridden by client browser configs)
 ARG NEXT_PUBLIC_API_URL=http://localhost:3002/api/v1
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 
 RUN pnpm build
 
