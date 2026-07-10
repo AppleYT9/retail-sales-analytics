@@ -1,5 +1,5 @@
 # Stage 1: Install dependencies and build the app
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Enable pnpm
@@ -18,7 +18,7 @@ ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN pnpm build
 
 # Stage 2: Serve the production built assets
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
