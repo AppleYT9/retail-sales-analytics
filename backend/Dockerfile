@@ -16,8 +16,8 @@ RUN python -c "import pathlib, prophet; p = pathlib.Path(prophet.__file__).paren
 # Copy source code
 COPY . .
 
-# Expose port
+# Expose port (Railway will override this with $PORT env variable)
 EXPOSE 3001
 
-# Run Uvicorn
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "3001"]
+# Copy template db to persistent volume on start and run Uvicorn on dynamic port
+CMD ["sh", "-c", "mkdir -p /data && (test -f /data/retail_analytics.db || cp /app/retail_analytics.db /data/retail_analytics.db) && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-3001}"]
