@@ -20,4 +20,4 @@ COPY . .
 EXPOSE 3001
 
 # Copy template db to persistent volume on start and run Uvicorn on port 3001
-CMD ["sh", "-c", "mkdir -p /data && (test -f /data/retail_analytics.db || cp /app/retail_analytics.db /data/retail_analytics.db) && uvicorn app.main:app --host 0.0.0.0 --port 3001"]
+CMD ["sh", "-c", "mkdir -p /data && (test -s /data/retail_analytics.db || cp /app/retail_analytics.db /data/retail_analytics.db) && uvicorn app.main:app --host 0.0.0.0 --port 3001"]
