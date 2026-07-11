@@ -16,8 +16,8 @@ RUN python -c "import pathlib, prophet; p = pathlib.Path(prophet.__file__).paren
 # Copy source code
 COPY . .
 
-# Expose port (Railway will override this with $PORT env variable)
-EXPOSE 3001
+# Expose port (handled dynamically by Railway)
+EXPOSE 8080
 
-# Copy template db to persistent volume on start and run Uvicorn on port 3001
-CMD ["sh", "-c", "echo '=== STARTING BACKEND ==='; mkdir -p /app/data; (test -s /app/data/retail_analytics.db || cp /app/retail_analytics.db /app/data/retail_analytics.db); uvicorn app.main:app --host 0.0.0.0 --port 3001"]
+# Copy template db to persistent volume on start and run Uvicorn on dynamic port $PORT
+CMD ["sh", "-c", "echo '=== STARTING BACKEND ==='; mkdir -p /app/data; (test -s /app/data/retail_analytics.db || cp /app/retail_analytics.db /app/data/retail_analytics.db); uvicorn app.main:app --host 0.0.0.0 --port $PORT"]
