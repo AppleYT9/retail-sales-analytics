@@ -19,5 +19,5 @@ COPY . .
 # Expose port (Railway will override this with $PORT env variable)
 EXPOSE 3001
 
-# Copy template db to persistent volume on start and run Uvicorn on port 3001
-CMD ["sh", "-c", "mkdir -p /app/data && (test -s /app/data/retail_analytics.db || cp /app/retail_analytics.db /app/data/retail_analytics.db) && uvicorn app.main:app --host 0.0.0.0 --port 3001"]
+# Copy template db to persistent volume on start and run Uvicorn on port 3001 with system diagnostics
+CMD ["sh", "-c", "echo '=== SYSTEM DIAGNOSTICS ===' && echo 'User:' $(whoami) && ls -ld /app/data && (cp /app/retail_analytics.db /app/data/retail_analytics.db || echo 'Copy failed') && ls -la /app/data && uvicorn app.main:app --host 0.0.0.0 --port 3001"]
