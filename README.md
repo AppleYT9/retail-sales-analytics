@@ -1,5 +1,11 @@
 # 📊 Retail Sales Analytics & Machine Learning Platform
 
+<p align="center">
+
+<a href="https://www.linkedin.com/posts/madhan-senthilkumar_machinelearning-datascience-fastapi-ugcPost-7481699101168787456-u63L/?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFWGGIsBZb4-NALu7hN4jvqbSclky7KsWBI">
+<img src="https://img.shields.io/badge/🎥_Watch_Project_Demo_on_LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white">
+</a>
+
 A production-grade, full-stack analytics platform built with **Next.js 16 (React 19)** and **FastAPI (Python)**, backed by a persistent **SQLite** database. 
 
 This platform integrates time-series sales forecasting, unsupervised customer segmentation, and transaction anomaly detection pipelines using **scikit-learn** and **Facebook Prophet**.
